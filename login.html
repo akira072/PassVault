@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PassVault — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+<script>if(localStorage.getItem('pv_session'))location.href='dashboard.html';</script>
+</head>
+<body class="auth-page">
+<div class="auth-bg-glow"></div>
+<div class="auth-card">
+  <div class="auth-brand">
+    <div class="brand-lock">🔐</div>
+    <div class="brand-logo">Pass<span class="vault">Vault</span></div>
+    <p class="brand-tagline">Your secure password manager</p>
+  </div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" data-tab="login" onclick="showTab('login')">Log In</button>
+    <button class="auth-tab" data-tab="signup" onclick="showTab('signup')">Sign Up</button>
+  </div>
+
+  <div id="loginForm" class="auth-form">
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <div class="input-wrap">
+        <input class="form-input" type="email" id="liEmail" placeholder="you@example.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <span class="field-error" id="liEmailErr"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="input-wrap">
+        <input class="form-input" type="password" id="liPass" placeholder="••••••••" autocomplete="current-password" style="padding-right:2.4rem" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <button class="input-icon" onclick="togglePass('liPass',this)">👁</button>
+      </div>
+      <span class="field-error" id="liPassErr"></span>
+    </div>
+    <button class="btn-auth" onclick="doLogin()">Log In →</button>
+    <div class="auth-divider">or</div>
+    <button class="btn-guest" onclick="doGuest()">Continue as Guest</button>
+    <p class="auth-footer-link">Don't have an account? <a href="#" onclick="showTab('signup');return false">Sign up free</a></p>
+  </div>
+
+  <div id="signupForm" class="auth-form hidden">
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <div class="input-wrap">
+        <input class="form-input" type="text" id="suName" placeholder="Piyush Shahi" autocomplete="name"/>
+      </div>
+      <span class="field-error" id="suNameErr"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <div class="input-wrap">
+        <input class="form-input" type="email" id="suEmail" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <span class="field-error" id="suEmailErr"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Master Password <span style="color:var(--slate);font-size:.65rem">(used to encrypt your vault)</span></label>
+      <div class="input-wrap">
+        <input class="form-input" type="password" id="suPass" placeholder="Min. 8 characters" style="padding-right:2.4rem" oninput="liveStrength(this.value)"/>
+        <button class="input-icon" onclick="togglePass('suPass',this)">👁</button>
+      </div>
+      <div class="str-bar" id="signupStrBar"><div class="str-pip"></div><div class="str-pip"></div><div class="str-pip"></div><div class="str-pip"></div><div class="str-pip"></div></div>
+      <span class="field-error" id="suPassErr"></span>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirm Password</label>
+      <div class="input-wrap">
+        <input class="form-input" type="password" id="suConf" placeholder="Repeat password" style="padding-right:2.4rem" onkeydown="if(event.key==='Enter')doSignup()"/>
+        <button class="input-icon" onclick="togglePass('suConf',this)">👁</button>
+      </div>
+      <span class="field-error" id="suConfErr"></span>
+    </div>
+    <button class="btn-auth" onclick="doSignup()">Create Account →</button>
+    <div class="auth-divider">or</div>
+    <button class="btn-guest" onclick="doGuest()">Continue as Guest</button>
+    <p class="auth-footer-link">Already have an account? <a href="#" onclick="showTab('login');return false">Log in</a></p>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="auth.js"></script>
+<script>
+function showTab(t){
+  document.getElementById('loginForm').classList.toggle('hidden',t!=='login');
+  document.getElementById('signupForm').classList.toggle('hidden',t!=='signup');
+  document.querySelectorAll('.auth-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  clearErrors();
+}
+function clearErrors(){
+  document.querySelectorAll('.field-error').forEach(e=>e.textContent='');
+  document.querySelectorAll('.form-input').forEach(i=>i.classList.remove('error'));
+}
+function setErr(id,msg){
+  document.getElementById(id+'Err').textContent=msg;
+  document.getElementById(id).classList.add('error');
+}
+function togglePass(id,btn){
+  const el=document.getElementById(id);
+  el.type=el.type==='password'?'text':'password';
+  btn.textContent=el.type==='password'?'👁':'🙈';
+}
+function liveStrength(pw){
+  let s=0;
+  if(pw.length>=8)s++;if(pw.length>=12)s++;
+  if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;
+  if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  const c=['','var(--red)','var(--orange)','var(--yellow)','var(--blue)','var(--green)'];
+  document.querySelectorAll('#signupStrBar .str-pip').forEach((p,i)=>{
+    p.style.background=i<s?c[s]:'rgba(255,255,255,.06)';
+  });
+}
+function doLogin(){
+  clearErrors();
+  const email=document.getElementById('liEmail').value.trim();
+  const pass=document.getElementById('liPass').value;
+  if(!email){setErr('liEmail','Email is required.');return;}
+  if(!pass){setErr('liPass','Password is required.');return;}
+  const r=Auth.login(email,pass);
+  if(!r.ok){setErr('liPass',r.msg);return;}
+  window.location.href='dashboard.html';
+}
+function doSignup(){
+  clearErrors();
+  const name=document.getElementById('suName').value.trim();
+  const email=document.getElementById('suEmail').value.trim();
+  const pass=document.getElementById('suPass').value;
+  const conf=document.getElementById('suConf').value;
+  let ok=true;
+  if(!name){setErr('suName','Name is required.');ok=false;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setErr('suEmail','Enter a valid email.');ok=false;}
+  if(pass.length<8){setErr('suPass','Min. 8 characters.');ok=false;}
+  if(pass!==conf){setErr('suConf','Passwords do not match.');ok=false;}
+  if(!ok)return;
+  const r=Auth.signup(name,email,pass);
+  if(!r.ok){setErr(r.field,r.msg);return;}
+  window.location.href='dashboard.html';
+}
+function doGuest(){Auth.guestLogin();window.location.href='dashboard.html';}
+</script>
+</body>
+</html>
