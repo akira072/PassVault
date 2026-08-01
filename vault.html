@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PassVault — Passwords</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand"><div class="brand-logo">Pass<span class="vault">Vault</span></div><span class="sb-version">v1.0</span></div>
+    <div class="sb-user"><div class="sb-avatar" id="sbAvatar">P</div><div class="sb-user-info"><div class="sb-name" id="sbName">…</div><div class="sb-email" id="sbEmail"></div></div></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-item" href="dashboard.html"><span class="sb-icon">⬡</span> Dashboard</a>
+      <a class="sb-item active" href="vault.html"><span class="sb-icon">🔑</span> Passwords <span class="sb-badge purple" id="sbPwCount">0</span></a>
+      <a class="sb-item" href="health.html"><span class="sb-icon">🛡</span> Security Health <span class="sb-badge" id="sbHealthBadge" style="display:none">!</span></a>
+      <a class="sb-item" href="notes.html"><span class="sb-icon">📝</span> Secure Notes</a>
+      <div class="sb-section">Tools</div>
+      <a class="sb-item" href="roadmap.html"><span class="sb-icon">🗺</span> Roadmap</a>
+      <a class="sb-item" href="pass-forge-git-master-piyushs-projects-20654cff.vercel.app/intro.html" target="_blank"><span class="sb-icon">⚙</span> PassForge ↗</a>
+    </nav>
+    <div class="sb-footer">
+      <button class="sb-footer-link" onclick="importCSVTrigger()"><span class="sb-icon">📥</span> Import CSV</button>
+      <button class="sb-footer-link" onclick="Vault.exportJSON();UI.toast('Vault exported','green')"><span class="sb-icon">📤</span> Export JSON</button>
+      <button class="sb-footer-link" onclick="Auth.logout()"><span class="sb-icon">🚪</span> Log Out</button>
+    </div>
+  </aside>
+  <div class="sb-backdrop" id="sbBackdrop"></div>
+  <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSVImport(this)"/>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <span class="page-title">Passwords</span>
+      <div class="search-wrap">
+        <span class="search-ico">🔍</span>
+        <input class="search-input" type="text" id="searchInput" placeholder="Search passwords…" oninput="renderVault()"/>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openAddModal()"><span>＋</span> <span>Add</span></button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="vault-toolbar">
+        <div class="filter-chips">
+          <button class="chip active" data-cat="all" onclick="setCategory(this)">All</button>
+          <button class="chip" data-cat="social" onclick="setCategory(this)">🌐 Social</button>
+          <button class="chip" data-cat="finance" onclick="setCategory(this)">💰 Finance</button>
+          <button class="chip" data-cat="work" onclick="setCategory(this)">💼 Work</button>
+          <button class="chip" data-cat="shopping" onclick="setCategory(this)">🛒 Shopping</button>
+          <button class="chip" data-cat="email" onclick="setCategory(this)">📧 Email</button>
+          <button class="chip" data-cat="gaming" onclick="setCategory(this)">🎮 Gaming</button>
+          <button class="chip" data-cat="other" onclick="setCategory(this)">🔑 Other</button>
+        </div>
+        <select class="sort-sel" id="sortSel" onchange="renderVault()">
+          <option value="updated">Recently Updated</option>
+          <option value="created">Date Added</option>
+          <option value="title">A → Z</option>
+          <option value="strength">Strength</option>
+        </select>
+        <span class="vault-count" id="vaultCount"></span>
+      </div>
+      <div class="vault-grid" id="vaultGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <span class="modal-title" id="modalTitle">Add Password</span>
+      <button class="modal-x" onclick="UI.closeModal('addModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label>Title / Website Name *</label><input class="fi" type="text" id="fTitle" placeholder="e.g. GitHub"/><span class="fi-err" id="fTitleErr"></span></div>
+      <div class="fg"><label>URL</label><input class="fi" type="text" id="fUrl" placeholder="https://github.com"/></div>
+      <div class="fg"><label>Username / Email</label><input class="fi" type="text" id="fUsername" placeholder="you@example.com" autocomplete="off"/></div>
+      <div class="fg">
+        <label>Password *</label>
+        <div class="pw-input-wrap">
+          <input class="fi" type="password" id="fPassword" placeholder="Enter or generate" autocomplete="new-password" style="padding-right:4.8rem" oninput="liveStr(this.value)"/>
+          <button class="pw-gen-btn" title="Generate" onclick="generateIntoField()">⚡</button>
+          <button class="pw-toggle" onclick="toggleFPw(this)">👁</button>
+        </div>
+        <div class="str-bar" id="fStrBar"><div class="str-pip"></div><div class="str-pip"></div><div class="str-pip"></div><div class="str-pip"></div><div class="str-pip"></div></div>
+        <span class="str-hint" id="fStrHint"></span>
+        <span class="fi-err" id="fPasswordErr"></span>
+      </div>
+      <div class="fg"><label>Category</label>
+        <select class="fi fi-sel" id="fCategory">
+          <option value="other">🔑 Other</option>
+          <option value="social">🌐 Social</option>
+          <option value="finance">💰 Finance</option>
+          <option value="work">💼 Work</option>
+          <option value="shopping">🛒 Shopping</option>
+          <option value="email">📧 Email</option>
+          <option value="gaming">🎮 Gaming</option>
+        </select>
+      </div>
+      <div class="fg"><label>Tags <span style="color:var(--slate);font-size:.65rem">(comma-separated)</span></label><input class="fi" type="text" id="fTags" placeholder="work, important, 2fa"/></div>
+      <div class="fg"><label>Notes</label><textarea class="fi fi-ta" id="fNotes" placeholder="Any additional info…"></textarea></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="UI.closeModal('addModal')">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">Save Password</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmModal">
+  <div class="modal confirm-modal">
+    <div class="modal-body" style="text-align:center;padding:2rem 1.5rem">
+      <div class="confirm-icon">🗑</div>
+      <div class="confirm-title" id="confirmTitle">Delete Password?</div>
+      <p class="confirm-msg" id="confirmMsg">This action cannot be undone.</p>
+      <div style="display:flex;gap:.5rem;justify-content:center;margin-top:1.25rem">
+        <button class="btn btn-ghost" onclick="UI.closeModal('confirmModal')">Cancel</button>
+        <button class="btn btn-danger" id="confirmOkBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="gen-fab" id="genFab" title="Password Generator">⚡</button>
+<div class="gen-popup" id="genPopup">
+  <div class="gen-popup-hd">
+    <span class="gen-popup-title">Generator</span>
+    <button class="modal-x" onclick="document.getElementById('genPopup').classList.remove('open')">✕</button>
+  </div>
+  <div class="gen-popup-body">
+    <div class="gen-result" id="genResult"><span style="color:var(--slate);font-size:.72rem">Click Generate →</span>
+      <div class="gen-result-actions">
+        <button class="gen-mini-btn" id="genCopyBtn">⧉</button>
+      </div>
+    </div>
+    <div class="gen-row">
+      <span class="gen-lbl">Length</span>
+      <input class="gen-slider" type="range" id="genLen" min="6" max="64" value="16"/>
+      <span class="gen-len" id="genLenVal">16</span>
+    </div>
+    <div class="gen-checks">
+      <label class="gen-ck"><input type="checkbox" id="gUpper" checked/> A–Z</label>
+      <label class="gen-ck"><input type="checkbox" id="gLower" checked/> a–z</label>
+      <label class="gen-ck"><input type="checkbox" id="gDigits" checked/> 0–9</label>
+      <label class="gen-ck"><input type="checkbox" id="gSymbols" checked/> !@#</label>
+    </div>
+    <div class="gen-btns">
+      <button class="btn btn-ghost btn-sm" id="genRegenBtn">↺ Generate</button>
+      <button class="btn btn-success btn-sm" id="genUseBtn">✓ Use</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="auth.js"></script><script src="vault.js"></script><script src="ui.js"></script><script src="generator.js"></script>
+<script>
+Auth.requireAuth();
+UI.fillUser();
+UI.initSidebar();
+Generator.initPopup('genPopup','genFab');
+
+let editId = null;
+let activeCat = 'all';
+
+function setCategory(btn){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');
+  activeCat = btn.dataset.cat;
+  renderVault();
+}
+
+function renderVault(){
+  const q    = document.getElementById('searchInput').value;
+  const sort = document.getElementById('sortSel').value;
+  let items  = Vault.search(q, activeCat);
+  if(sort==='title')    items.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(sort==='strength') items.sort((a,b)=>Vault.scorePassword(b.password)-Vault.scorePassword(a.password));
+  else if(sort==='created')  items.sort((a,b)=>b.created-a.created);
+  else items.sort((a,b)=>b.updated-a.updated);
+
+  document.getElementById('sbPwCount').textContent=Vault.getAll().length;
+  document.getElementById('vaultCount').textContent=items.length+' item'+(items.length!==1?'s':'');
+
+  const sc=Vault.securityScore();
+  const hBadge=document.getElementById('sbHealthBadge');
+  if(sc.weak+sc.dup>0){hBadge.style.display='';hBadge.textContent=sc.weak+sc.dup;}
+  else hBadge.style.display='none';
+
+  const grid=document.getElementById('vaultGrid');
+  if(!items.length){
+    grid.innerHTML=`<div class="vault-empty"><div class="vault-empty-icon">🔑</div><h3>${q?'No results found':'No passwords yet'}</h3><p>${q?'Try a different search term.':'Add your first password to get started.'}</p><button class="btn btn-primary" onclick="openAddModal()">＋ Add Password</button></div>`;
+    return;
+  }
+  const cols=['','var(--red)','var(--orange)','var(--yellow)','var(--blue)','var(--green)'];
+  grid.innerHTML=items.map(p=>{
+    const sc=Vault.scorePassword(p.password);
+    const pips=Array.from({length:5},(_,i)=>`<div class="s-pip" style="background:${i<sc?cols[sc]:'rgba(255,255,255,.06)'}"></div>`).join('');
+    const catStyle=UI.catColor(p.category);
+    return `<div class="pw-card${p.starred?' starred':''}">
+      <div class="pw-card-top">
+        <div class="pw-favicon">${UI.catEmoji(p.category)}</div>
+        <div class="pw-meta">
+          <div class="pw-title" title="${p.title}">${p.title}</div>
+          <div class="pw-subtitle">${p.url||p.username||''}</div>
+        </div>
+        <div class="pw-top-right">
+          <button class="fav-btn" onclick="Vault.toggleStar('${p.id}');renderVault()" title="${p.starred?'Unfavorite':'Favorite'}">${p.starred?'★':'☆'}</button>
+          <span class="cat-badge" style="${catStyle}">${p.category}</span>
+        </div>
+      </div>
+      <div class="pw-fields">
+        <div class="pw-field">
+          <span class="pw-field-lbl">Username</span>
+          <span class="pw-field-val">${p.username||'—'}</span>
+          ${p.username?`<button class="copy-field-btn" onclick="UI.copyToClipboard('${p.username.replace(/'/g,"\\'")}','Username')" title="Copy username">⧉</button>`:''}
+        </div>
+        <div class="pw-field">
+          <span class="pw-field-lbl">Password</span>
+          <span class="pw-field-val masked" id="pwval_${p.id}">••••••••</span>
+          <button class="reveal-btn" onclick="toggleReveal('${p.id}','${p.password.replace(/'/g,"\\'")}',this)">👁</button>
+          <button class="copy-field-btn" onclick="UI.copyToClipboard('${p.password.replace(/'/g,"\\'")}','Password')" title="Copy password">⧉</button>
+        </div>
+        ${p.tags?`<div class="pw-field"><span class="pw-field-lbl">Tags</span><span class="pw-field-val" style="color:var(--slate);font-size:.68rem">${p.tags}</span></div>`:''}
+      </div>
+      <div class="pw-strength">${pips}</div>
+      <div style="font-size:.62rem;color:var(--slate);margin-bottom:.6rem">Updated ${UI.timeAgo(p.updated)}</div>
+      <div class="pw-card-footer">
+        <button class="btn btn-ghost btn-sm" onclick="openEditModal('${p.id}')">✏ Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="UI.confirm('Delete &quot;${p.title}&quot;? This cannot be undone.','Delete Password',()=>{Vault.remove('${p.id}');renderVault();UI.toast('Deleted','red')})">🗑 Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleReveal(id, pw, btn){
+  const el=document.getElementById('pwval_'+id);
+  const masked=el.classList.contains('masked');
+  el.textContent=masked?pw:'••••••••';
+  el.classList.toggle('masked',!masked);
+  btn.textContent=masked?'🙈':'👁';
+}
+
+function openAddModal(){
+  editId=null;
+  document.getElementById('modalTitle').textContent='Add Password';
+  document.getElementById('saveBtn').textContent='Save Password';
+  ['fTitle','fUrl','fUsername','fPassword','fTags','fNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fCategory').value='other';
+  document.getElementById('fPassword').type='password';
+  liveStr('');
+  clearFErrors();
+  UI.openModal('addModal');
+  document.getElementById('fTitle').focus();
+}
+
+function openEditModal(id){
+  const p=Vault.getAll().find(i=>i.id===id);
+  if(!p)return;
+  editId=id;
+  document.getElementById('modalTitle').textContent='Edit Password';
+  document.getElementById('saveBtn').textContent='Update Password';
+  document.getElementById('fTitle').value=p.title;
+  document.getElementById('fUrl').value=p.url||'';
+  document.getElementById('fUsername').value=p.username||'';
+  document.getElementById('fPassword').value=p.password;
+  document.getElementById('fPassword').type='text';
+  document.getElementById('fCategory').value=p.category||'other';
+  document.getElementById('fTags').value=p.tags||'';
+  document.getElementById('fNotes').value=p.notes||'';
+  liveStr(p.password);
+  clearFErrors();
+  UI.openModal('addModal');
+}
+
+function clearFErrors(){
+  ['fTitle','fPassword'].forEach(id=>{
+    document.getElementById(id).classList.remove('err');
+    document.getElementById(id+'Err').textContent='';
+  });
+}
+
+function saveEntry(){
+  let ok=true;
+  const title=document.getElementById('fTitle').value.trim();
+  const pw=document.getElementById('fPassword').value;
+  if(!title){document.getElementById('fTitle').classList.add('err');document.getElementById('fTitleErr').textContent='Title is required.';ok=false;}
+  if(!pw){document.getElementById('fPassword').classList.add('err');document.getElementById('fPasswordErr').textContent='Password is required.';ok=false;}
+  if(!ok)return;
+  const entry={
+    title,url:document.getElementById('fUrl').value.trim(),
+    username:document.getElementById('fUsername').value.trim(),
+    password:pw,
+    category:document.getElementById('fCategory').value,
+    tags:document.getElementById('fTags').value.trim(),
+    notes:document.getElementById('fNotes').value.trim()
+  };
+  if(editId){Vault.update(editId,entry);UI.toast('Password updated','green');}
+  else{Vault.add(entry);UI.toast('Password saved','green');}
+  UI.closeModal('addModal');
+  renderVault();
+}
+
+function toggleFPw(btn){
+  const el=document.getElementById('fPassword');
+  el.type=el.type==='password'?'text':'password';
+  btn.textContent=el.type==='password'?'👁':'🙈';
+}
+
+function generateIntoField(){
+  const pw=Generator.generate({length:16,upper:true,lower:true,digits:true,symbols:true});
+  const f=document.getElementById('fPassword');
+  f.value=pw;f.type='text';
+  liveStr(pw);
+  UI.toast('Password generated','green');
+}
+
+function liveStr(pw){
+  let s=0;
+  if(pw.length>=8)s++;if(pw.length>=12)s++;
+  if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++;
+  if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  const c=['','var(--red)','var(--orange)','var(--yellow)','var(--blue)','var(--green)'];
+  const l=['','Very Weak','Weak','Fair','Strong','Very Strong'];
+  document.querySelectorAll('#fStrBar .str-pip').forEach((p,i)=>{
+    p.style.background=i<s?c[s]:'rgba(255,255,255,.06)';
+  });
+  const hint=document.getElementById('fStrHint');
+  hint.textContent=pw?l[s]||'':'';
+  hint.style.color=c[s]||'var(--slate)';
+}
+
+function importCSVTrigger(){document.getElementById('csvInput').click();}
+function handleCSVImport(inp){
+  const f=inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{const n=Vault.importCSV(e.target.result);UI.toast(n+' passwords imported','green');renderVault();};
+  r.readAsText(f);inp.value='';
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')UI.closeAllModals();});
+renderVault();
+</script>
+</body>
+</html>
