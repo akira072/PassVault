@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PassVault — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand"><div class="brand-logo">Pass<span class="vault">Vault</span></div><span class="sb-version">v1.0</span></div>
+    <div class="sb-user"><div class="sb-avatar" id="sbAvatar">P</div><div class="sb-user-info"><div class="sb-name" id="sbName">…</div><div class="sb-email" id="sbEmail"></div></div></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-item active" href="dashboard.html"><span class="sb-icon">⬡</span> Dashboard</a>
+      <a class="sb-item" href="vault.html"><span class="sb-icon">🔑</span> Passwords <span class="sb-badge purple" id="sbPwCount">0</span></a>
+      <a class="sb-item" href="health.html"><span class="sb-icon">🛡</span> Security Health <span class="sb-badge" id="sbHealthBadge" style="display:none">!</span></a>
+      <a class="sb-item" href="notes.html"><span class="sb-icon">📝</span> Secure Notes</a>
+      <div class="sb-section">Tools</div>
+      <a class="sb-item" href="roadmap.html"><span class="sb-icon">🗺</span> Roadmap</a>
+      <a class="sb-item" href="https://akira072.github.io/PassForge" target="_blank"><span class="sb-icon">⚙</span> PassForge ↗</a>
+    </nav>
+    <div class="sb-footer">
+      <button class="sb-footer-link" onclick="Vault.exportJSON();UI.toast('Vault exported','green')"><span class="sb-icon">📤</span> Export Vault</button>
+      <button class="sb-footer-link" onclick="Auth.logout()"><span class="sb-icon">🚪</span> Log Out</button>
+    </div>
+  </aside>
+  <div class="sb-backdrop" id="sbBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <span class="page-title">Dashboard</span>
+      <div class="topbar-right">
+        <a href="vault.html" class="btn btn-primary"><span>＋</span> <span>Add Password</span></a>
+      </div>
+    </header>
+    <div class="page" id="dashPage">
+      <div id="greetBar" style="font-size:.85rem;color:var(--slate);margin-bottom:1.25rem"></div>
+
+      <div class="score-card" id="scoreCard">
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="7"/>
+            <circle id="scoreArc" cx="45" cy="45" r="38" fill="none" stroke="var(--purple)" stroke-width="7"
+              stroke-dasharray="239" stroke-dashoffset="239" stroke-linecap="round"
+              transform="rotate(-90 45 45)" style="transition:stroke-dashoffset .8s ease,stroke .4s"/>
+          </svg>
+          <div class="score-ring-center">
+            <span class="score-num" id="scoreNum">–</span>
+            <span class="score-max">/100</span>
+          </div>
+        </div>
+        <div class="score-info">
+          <div class="score-title" id="scoreGrade">Security Score</div>
+          <div class="score-desc" id="scoreDesc">Add passwords to see your security score.</div>
+          <div class="score-bars">
+            <div class="score-bar-row"><span class="score-bar-label">Weak</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarWeak" style="background:var(--red);width:0%"></div></div><span class="score-bar-val" id="sValWeak">0</span></div>
+            <div class="score-bar-row"><span class="score-bar-label">Duplicates</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarDup" style="background:var(--orange);width:0%"></div></div><span class="score-bar-val" id="sValDup">0</span></div>
+            <div class="score-bar-row"><span class="score-bar-label">Old (30d+)</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarOld" style="background:var(--yellow);width:0%"></div></div><span class="score-bar-val" id="sValOld">0</span></div>
+            <div class="score-bar-row"><span class="score-bar-label">Strong</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarStrong" style="background:var(--green);width:0%"></div></div><span class="score-bar-val" id="sValStrong">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card purple"><span class="stat-num" id="statTotal">0</span><span class="stat-label">Total Passwords</span></div>
+        <div class="stat-card red"><span class="stat-num" id="statWeak">0</span><span class="stat-label">Weak Passwords</span><span class="stat-sub">needs attention</span></div>
+        <div class="stat-card orange"><span class="stat-num" id="statDup">0</span><span class="stat-label">Duplicates</span></div>
+        <div class="stat-card blue"><span class="stat-num" id="statNotes">0</span><span class="stat-label">Secure Notes</span></div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <p style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--slate);letter-spacing:.12em;text-transform:uppercase">Recent Passwords</p>
+        <a href="vault.html" style="font-size:.72rem;color:var(--purple-light)">View all →</a>
+      </div>
+      <div id="recentList"></div>
+
+      <div style="margin-top:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.75rem">
+        <a href="vault.html" class="card card-sm" style="display:flex;align-items:center;gap:.65rem;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(124,58,237,.35)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:1.4rem">＋</span>
+          <div><div style="font-size:.82rem;font-weight:600">Add Password</div><div style="font-size:.68rem;color:var(--slate)">Store a new entry</div></div>
+        </a>
+        <a href="notes.html" class="card card-sm" style="display:flex;align-items:center;gap:.65rem;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(124,58,237,.35)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:1.4rem">📝</span>
+          <div><div style="font-size:.82rem;font-weight:600">Secure Note</div><div style="font-size:.68rem;color:var(--slate)">Encrypted notes</div></div>
+        </a>
+        <a href="health.html" class="card card-sm" style="display:flex;align-items:center;gap:.65rem;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(124,58,237,.35)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:1.4rem">🛡</span>
+          <div><div style="font-size:.82rem;font-weight:600">Health Check</div><div style="font-size:.68rem;color:var(--slate)">Fix weak passwords</div></div>
+        </a>
+        <a href="https://akira072.github.io/PassForge" target="_blank" class="card card-sm" style="display:flex;align-items:center;gap:.65rem;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(57,255,20,.25)'" onmouseout="this.style.borderColor='var(--border)'">
+          <span style="font-size:1.4rem">⚙</span>
+          <div><div style="font-size:.82rem;font-weight:600;color:var(--green)">PassForge ↗</div><div style="font-size:.68rem;color:var(--slate)">Generate passwords</div></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="auth.js"></script><script src="vault.js"></script><script src="ui.js"></script>
+<script>
+const session = Auth.requireAuth();
+if(session){
+  UI.fillUser();
+  UI.initSidebar();
+  const s=Auth.getSession();
+  const hr=new Date().getHours();
+  const greet=hr<12?'Good morning':'hr<17?Good afternoon':'Good evening';
+  document.getElementById('greetBar').innerHTML=`<span style="color:var(--white);font-weight:600">${greet<12?'Good morning':hr<17?'Good afternoon':'Good evening'}, ${s.name}!</span> <span>Here's your vault overview.</span>`;
+
+  function loadDash(){
+    const stats=Vault.getStats();
+    const sc=Vault.securityScore();
+    document.getElementById('statTotal').textContent=stats.total;
+    document.getElementById('statWeak').textContent=stats.weak;
+    document.getElementById('statDup').textContent=stats.dups;
+    document.getElementById('statNotes').textContent=stats.notes;
+    document.getElementById('sbPwCount').textContent=stats.total;
+
+    const arc=document.getElementById('scoreArc');
+    const circ=239;
+    arc.style.strokeDashoffset=circ-(sc.score/100)*circ;
+    arc.style.stroke=sc.score>=80?'var(--green)':sc.score>=60?'var(--blue)':sc.score>=40?'var(--orange)':'var(--red)';
+    document.getElementById('scoreNum').textContent=sc.score;
+    document.getElementById('scoreNum').style.color=arc.style.stroke;
+    document.getElementById('scoreGrade').textContent=sc.grade+' Security';
+    document.getElementById('scoreDesc').textContent=
+      sc.total===0?'Add passwords to calculate your security score.':
+      sc.score>=80?'Great job! Your vault is well-protected.':
+      sc.score>=60?'Room for improvement — fix weak or duplicate passwords.':
+      'Your vault has critical issues. Review your passwords now.';
+
+    const pct=n=>sc.total?Math.round((n/sc.total)*100)+'%':'0%';
+    document.getElementById('sBarWeak').style.width=pct(sc.weak);document.getElementById('sValWeak').textContent=sc.weak;
+    document.getElementById('sBarDup').style.width=pct(sc.dup);document.getElementById('sValDup').textContent=sc.dup;
+    document.getElementById('sBarOld').style.width=pct(sc.old);document.getElementById('sValOld').textContent=sc.old;
+    document.getElementById('sBarStrong').style.width=pct(sc.strong);document.getElementById('sValStrong').textContent=sc.strong;
+
+    if(sc.weak+sc.dup>0){document.getElementById('sbHealthBadge').style.display='';document.getElementById('sbHealthBadge').textContent=sc.weak+sc.dup;}
+    else document.getElementById('sbHealthBadge').style.display='none';
+
+    const recent=Vault.getAll().slice(0,5);
+    const rList=document.getElementById('recentList');
+    if(!recent.length){
+      rList.innerHTML='<div class="vault-empty" style="padding:2rem 1rem"><div class="vault-empty-icon">🔑</div><h3>No passwords yet</h3><p>Add your first password to get started.</p><a href="vault.html" class="btn btn-primary">Add Password</a></div>';
+      return;
+    }
+    rList.innerHTML=recent.map(p=>`
+      <div class="health-pw-row" style="cursor:pointer" onclick="location.href='vault.html'">
+        <div class="h-favicon">${UI.catEmoji(p.category)}</div>
+        <div class="h-meta">
+          <div class="h-title">${p.title}</div>
+          <div class="h-sub">${p.username||'No username'} · ${UI.timeAgo(p.updated)}</div>
+        </div>
+        <button class="btn-icon btn-sm" onclick="event.stopPropagation();UI.copyToClipboard('${p.password}','Password')">⧉</button>
+      </div>`).join('');
+  }
+  loadDash();
+}
+</script>
+</body>
+</html>
