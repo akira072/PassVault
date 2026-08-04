@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PassVault — Roadmap</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand"><div class="brand-logo">Pass<span class="vault">Vault</span></div><span class="sb-version">v1.0</span></div>
+    <div class="sb-user"><div class="sb-avatar" id="sbAvatar">P</div><div class="sb-user-info"><div class="sb-name" id="sbName">…</div><div class="sb-email" id="sbEmail"></div></div></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-item" href="dashboard.html"><span class="sb-icon">⬡</span> Dashboard</a>
+      <a class="sb-item" href="vault.html"><span class="sb-icon">🔑</span> Passwords</a>
+      <a class="sb-item" href="health.html"><span class="sb-icon">🛡</span> Security Health</a>
+      <a class="sb-item" href="notes.html"><span class="sb-icon">📝</span> Secure Notes</a>
+      <div class="sb-section">Tools</div>
+      <a class="sb-item active" href="roadmap.html"><span class="sb-icon">🗺</span> Roadmap</a>
+      <a class="sb-item" href="https://akira072.github.io/PassForge" target="_blank"><span class="sb-icon">⚙</span> PassForge ↗</a>
+    </nav>
+    <div class="sb-footer">
+      <button class="sb-footer-link" onclick="Auth.logout()"><span class="sb-icon">🚪</span> Log Out</button>
+    </div>
+  </aside>
+  <div class="sb-backdrop" id="sbBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <span class="page-title">Roadmap</span>
+    </header>
+    <div class="page roadmap-page" style="max-width:780px">
+
+      <div class="roadmap-hero">
+        <h1>PassVault <span>Roadmap</span></h1>
+        <p>A real password manager built right — not feature-stuffed, but deeply good at what matters. Each phase ships working software before moving to the next.</p>
+        <div class="version-chips">
+          <span class="v-chip current">v1.0 — Current</span>
+          <span class="v-chip">v1.5 — Next</span>
+          <span class="v-chip">v2.0 — Planned</span>
+          <span class="v-chip">v2.5 — Future</span>
+          <span class="v-chip">v3.0 — Vision</span>
+        </div>
+      </div>
+
+      <div class="tech-section">
+        <p class="section-title">Tech Stack</p>
+        <div class="tech-cards">
+          <div class="tech-card"><span class="tc-icon">🌐</span><div class="tc-name">HTML5</div><div class="tc-role">Structure & Semantics</div></div>
+          <div class="tech-card"><span class="tc-icon">🎨</span><div class="tc-name">CSS3</div><div class="tc-role">Design System</div></div>
+          <div class="tech-card"><span class="tc-icon">⚡</span><div class="tc-name">JavaScript</div><div class="tc-role">App Logic (Vanilla)</div></div>
+          <div class="tech-card"><span class="tc-icon">🔐</span><div class="tc-name">Web Crypto API</div><div class="tc-role">AES-256-GCM</div></div>
+          <div class="tech-card"><span class="tc-icon">💾</span><div class="tc-name">localStorage</div><div class="tc-role">Client Storage (v1)</div></div>
+          <div class="tech-card"><span class="tc-icon">🔥</span><div class="tc-name">Firebase</div><div class="tc-role">Auth + Sync (v2)</div></div>
+          <div class="tech-card"><span class="tc-icon">📦</span><div class="tc-name">Firestore</div><div class="tc-role">Cloud Database (v2)</div></div>
+          <div class="tech-card"><span class="tc-icon">📱</span><div class="tc-name">PWA</div><div class="tc-role">Offline + Install (v3)</div></div>
+        </div>
+      </div>
+
+      <div class="timeline">
+
+        <div class="phase-block">
+          <div class="phase-dot done"></div>
+          <div class="phase-card done">
+            <div class="phase-hd">
+              <span class="phase-num">PHASE 0</span>
+              <span class="phase-name">Planning & Architecture</span>
+              <span class="phase-status ps-done">✓ Done</span>
+            </div>
+            <div class="phase-items">
+              <div class="pi done-i"><span class="pi-tick">✓</span> Finalize architecture and data flow</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Define data schema (passwords, notes, session)</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Design system and color tokens</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Module structure: auth, vault, crypto, ui, generator</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> GitHub repository created</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-block">
+          <div class="phase-dot done"></div>
+          <div class="phase-card done">
+            <div class="phase-hd">
+              <span class="phase-num">v1.0</span>
+              <span class="phase-name">Core Foundation — MVP</span>
+              <span class="phase-status ps-done">✓ Shipped</span>
+              <span class="phase-eta">Phase 1–3</span>
+            </div>
+            <div class="phase-items">
+              <div class="pi done-i"><span class="pi-tick">✓</span> Login + Sign Up (localStorage auth)</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Guest mode</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Dashboard with security score ring</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Password CRUD (Add, Edit, Delete, Copy)</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Favorite / star passwords</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Reveal / mask password fields</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Password strength meter (5-level)</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Security Health page (weak, duplicate, old)</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Secure Notes CRUD</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Password generator popup (⚡ FAB)</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Export vault as JSON</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Import from CSV</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> Responsive sidebar + mobile layout</div>
+              <div class="pi done-i"><span class="pi-tick">✓</span> PassForge integration link</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-block">
+          <div class="phase-dot active"></div>
+          <div class="phase-card active">
+            <div class="phase-hd">
+              <span class="phase-num">v1.5</span>
+              <span class="phase-name">Organization & Polish</span>
+              <span class="phase-status ps-active">⚡ In Progress</span>
+              <span class="phase-eta">Phase 4–6</span>
+            </div>
+            <div class="phase-items">
+              <div class="pi active-i"><span class="pi-tick">◈</span> Advanced search (title, username, URL, tags)</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Category filter chips in vault</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Sort by: date, name, strength, category</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Tags system with multi-tag filter</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Trash / soft-delete with restore</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Clipboard auto-clear after 30 seconds</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> PassForge → Save to Vault (direct integration)</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Auto-lock after inactivity (5 min)</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Keyboard shortcuts (N=new, /=search, Esc=close)</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Skeleton loading states</div>
+              <div class="pi active-i"><span class="pi-tick">◈</span> Last copied indicator on cards</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-block">
+          <div class="phase-dot future"></div>
+          <div class="phase-card">
+            <div class="phase-hd">
+              <span class="phase-num">v2.0</span>
+              <span class="phase-name">Client-Side Encryption + Firebase</span>
+              <span class="phase-status ps-future">Planned</span>
+              <span class="phase-eta">Phase 7–8</span>
+            </div>
+            <div class="phase-items">
+              <div class="pi todo-i"><span class="pi-tick">○</span> Master password + AES-256-GCM encryption of all vault entries</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> PBKDF2 key derivation (310,000 iterations)</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Firebase Auth (email + Google login)</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Firestore cloud sync (encrypted blobs only)</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Email verification flow</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Forgot password / reset</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Session timeout + auto-lock</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Zero-knowledge: server never sees plaintext</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-block">
+          <div class="phase-dot future"></div>
+          <div class="phase-card">
+            <div class="phase-hd">
+              <span class="phase-num">v2.5</span>
+              <span class="phase-name">Extra Vaults + Import/Export</span>
+              <span class="phase-status ps-future">Planned</span>
+            </div>
+            <div class="phase-items">
+              <div class="pi todo-i"><span class="pi-tick">○</span> API Keys vault (key, service, expiry, scope)</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> WiFi Passwords vault</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Recovery Codes vault</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Import from Bitwarden JSON</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Export encrypted JSON (re-importable)</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Breach detection via HaveIBeenPwned API (k-anonymity)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-block">
+          <div class="phase-dot future"></div>
+          <div class="phase-card">
+            <div class="phase-hd">
+              <span class="phase-num">v3.0</span>
+              <span class="phase-name">PWA + Offline + Polish</span>
+              <span class="phase-status ps-future">Vision</span>
+            </div>
+            <div class="phase-items">
+              <div class="pi todo-i"><span class="pi-tick">○</span> Progressive Web App (installable)</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Service worker + offline support via IndexedDB</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Background sync when reconnected</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Smooth page transitions and micro-animations</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Full keyboard navigation</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Architecture diagram in README</div>
+              <div class="pi todo-i"><span class="pi-tick">○</span> Security model documentation</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="tech-section" style="margin-top:2rem">
+        <p class="section-title">Milestones</p>
+        <div class="milestone-row">
+          <div class="milestone">
+            <div class="ms-ver" style="color:var(--green)">v1.0 ✓ Shipped</div>
+            <div class="ms-items">Auth · Dashboard · Password CRUD<br/>Security Health · Secure Notes<br/>Generator · Export/Import</div>
+          </div>
+          <div class="milestone">
+            <div class="ms-ver" style="color:var(--purple-light)">v1.5 ⚡ Next</div>
+            <div class="ms-items">Advanced Search · Tags · Trash<br/>Clipboard timeout · Auto-lock<br/>PassForge → Vault integration</div>
+          </div>
+          <div class="milestone">
+            <div class="ms-ver">v2.0 Planned</div>
+            <div class="ms-items">AES-256 Encryption · Firebase<br/>Cloud sync · Email verify<br/>Zero-knowledge architecture</div>
+          </div>
+          <div class="milestone">
+            <div class="ms-ver">v3.0 Vision</div>
+            <div class="ms-items">PWA · Offline · IndexedDB<br/>Breach detection<br/>Full keyboard nav</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem;padding:1.25rem;background:var(--navy-card);border:1px solid var(--border);border-radius:var(--radius)">
+        <p style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--purple-light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem">⚠ Not Building (Yet)</p>
+        <p style="font-size:.78rem;color:var(--slate);line-height:1.7">Browser extension · Password sharing · Teams/collaboration · OTP authenticator · Credit card storage · Identity manager · AI assistant. These are low ROI at this stage. Ship an excellent password manager first.</p>
+      </div>
+
+      <div style="text-align:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+        <p style="font-size:.72rem;color:var(--slate)">Built by <strong style="color:var(--white)">Piyush Shahi</strong> · <a href="https://github.com/akira072" target="_blank" style="color:var(--purple-light)">GitHub</a> · <a href="https://akira072.github.io/PassForge" target="_blank" style="color:var(--green)">PassForge ↗</a></p>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="auth.js"></script><script src="vault.js"></script><script src="ui.js"></script>
+<script>
+Auth.requireAuth();
+UI.fillUser();
+UI.initSidebar();
+</script>
+</body>
+</html>

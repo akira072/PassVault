@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PassVault — Security Health</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand"><div class="brand-logo">Pass<span class="vault">Vault</span></div><span class="sb-version">v1.0</span></div>
+    <div class="sb-user"><div class="sb-avatar" id="sbAvatar">P</div><div class="sb-user-info"><div class="sb-name" id="sbName">…</div><div class="sb-email" id="sbEmail"></div></div></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-item" href="dashboard.html"><span class="sb-icon">⬡</span> Dashboard</a>
+      <a class="sb-item" href="vault.html"><span class="sb-icon">🔑</span> Passwords <span class="sb-badge purple" id="sbPwCount">0</span></a>
+      <a class="sb-item active" href="health.html"><span class="sb-icon">🛡</span> Security Health</a>
+      <a class="sb-item" href="notes.html"><span class="sb-icon">📝</span> Secure Notes</a>
+      <div class="sb-section">Tools</div>
+      <a class="sb-item" href="roadmap.html"><span class="sb-icon">🗺</span> Roadmap</a>
+      <a class="sb-item" href="https://akira072.github.io/PassForge" target="_blank"><span class="sb-icon">⚙</span> PassForge ↗</a>
+    </nav>
+    <div class="sb-footer">
+      <button class="sb-footer-link" onclick="Vault.exportJSON();UI.toast('Exported','green')"><span class="sb-icon">📤</span> Export Vault</button>
+      <button class="sb-footer-link" onclick="Auth.logout()"><span class="sb-icon">🚪</span> Log Out</button>
+    </div>
+  </aside>
+  <div class="sb-backdrop" id="sbBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <span class="page-title">Security Health</span>
+    </header>
+    <div class="page">
+
+      <div class="health-grid" id="healthCards">
+        <div class="health-card red" onclick="showSection('weak')">
+          <span class="hc-icon">⚠️</span>
+          <span class="hc-num" id="hcWeak">0</span>
+          <span class="hc-label">Weak Passwords</span>
+          <span class="hc-desc">Short, simple, or easily guessable passwords.</span>
+        </div>
+        <div class="health-card orange" onclick="showSection('dup')">
+          <span class="hc-icon">♊</span>
+          <span class="hc-num" id="hcDup">0</span>
+          <span class="hc-label">Duplicate Passwords</span>
+          <span class="hc-desc">Same password used on multiple sites.</span>
+        </div>
+        <div class="health-card yellow" onclick="showSection('old')">
+          <span class="hc-icon">🕐</span>
+          <span class="hc-num" id="hcOld">0</span>
+          <span class="hc-label">Old Passwords</span>
+          <span class="hc-desc">Not updated in the last 30 days.</span>
+        </div>
+        <div class="health-card green" onclick="showSection('strong')">
+          <span class="hc-icon">✅</span>
+          <span class="hc-num" id="hcStrong">0</span>
+          <span class="hc-label">Strong Passwords</span>
+          <span class="hc-desc">Well-protected entries in your vault.</span>
+        </div>
+      </div>
+
+      <div class="score-card" style="margin-bottom:1.5rem">
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 90 90">
+            <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="7"/>
+            <circle id="scoreArc" cx="45" cy="45" r="38" fill="none" stroke="var(--purple)" stroke-width="7"
+              stroke-dasharray="239" stroke-dashoffset="239" stroke-linecap="round"
+              transform="rotate(-90 45 45)" style="transition:stroke-dashoffset .8s ease,stroke .4s"/>
+          </svg>
+          <div class="score-ring-center">
+            <span class="score-num" id="scoreNum">–</span>
+            <span class="score-max">/100</span>
+          </div>
+        </div>
+        <div class="score-info">
+          <div class="score-title" id="scoreGrade">Overall Security Score</div>
+          <div class="score-desc" id="scoreDesc">Calculating…</div>
+          <div class="score-bars">
+            <div class="score-bar-row"><span class="score-bar-label">Weak</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarWeak" style="background:var(--red);width:0%"></div></div><span class="score-bar-val" id="sValWeak">0</span></div>
+            <div class="score-bar-row"><span class="score-bar-label">Duplicates</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarDup" style="background:var(--orange);width:0%"></div></div><span class="score-bar-val" id="sValDup">0</span></div>
+            <div class="score-bar-row"><span class="score-bar-label">Old (30d+)</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarOld" style="background:var(--yellow);width:0%"></div></div><span class="score-bar-val" id="sValOld">0</span></div>
+            <div class="score-bar-row"><span class="score-bar-label">Strong</span><div class="score-bar-track"><div class="score-bar-fill" id="sBarStrong" style="background:var(--green);width:0%"></div></div><span class="score-bar-val" id="sValStrong">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="healthSection">
+        <p class="health-list-title">Click a card above to inspect passwords</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="auth.js"></script><script src="vault.js"></script><script src="ui.js"></script>
+<script>
+Auth.requireAuth();
+UI.fillUser();
+UI.initSidebar();
+
+function loadHealth(){
+  const sc=Vault.securityScore();
+  const all=Vault.getAll();
+  document.getElementById('sbPwCount').textContent=all.length;
+  document.getElementById('hcWeak').textContent=sc.weak;
+  document.getElementById('hcDup').textContent=sc.dup;
+  document.getElementById('hcOld').textContent=sc.old;
+  document.getElementById('hcStrong').textContent=sc.strong;
+  document.getElementById('scoreNum').textContent=sc.score;
+  document.getElementById('scoreNum').style.color=sc.score>=80?'var(--green)':sc.score>=60?'var(--blue)':sc.score>=40?'var(--orange)':'var(--red)';
+  const arc=document.getElementById('scoreArc');
+  arc.style.strokeDashoffset=239-(sc.score/100)*239;
+  arc.style.stroke=sc.score>=80?'var(--green)':sc.score>=60?'var(--blue)':sc.score>=40?'var(--orange)':'var(--red)';
+  document.getElementById('scoreGrade').textContent=sc.grade+' Security ('+sc.score+'/100)';
+  document.getElementById('scoreDesc').textContent=sc.total===0?'No passwords yet — add some to calculate your score.':
+    sc.score>=80?'Your vault is in great shape. Keep it up!':
+    sc.score>=60?'Some improvements needed. Check weak and duplicate passwords.':
+    'Critical issues detected. Fix weak and duplicate passwords immediately.';
+  const pct=n=>sc.total?Math.round((n/sc.total)*100)+'%':'0%';
+  document.getElementById('sBarWeak').style.width=pct(sc.weak);document.getElementById('sValWeak').textContent=sc.weak;
+  document.getElementById('sBarDup').style.width=pct(sc.dup);document.getElementById('sValDup').textContent=sc.dup;
+  document.getElementById('sBarOld').style.width=pct(sc.old);document.getElementById('sValOld').textContent=sc.old;
+  document.getElementById('sBarStrong').style.width=pct(sc.strong);document.getElementById('sValStrong').textContent=sc.strong;
+}
+
+function showSection(type){
+  document.querySelectorAll('.health-card').forEach(c=>c.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  let items, title, tag, tagClass;
+  if(type==='weak'){items=Vault.getWeakPasswords();title='Weak Passwords';tag='WEAK';tagClass='weak';}
+  else if(type==='dup'){items=Vault.getDuplicatePasswords();title='Duplicate Passwords';tag='DUPLICATE';tagClass='dup';}
+  else if(type==='old'){items=Vault.getOldPasswords();title='Old Passwords (30+ days)';tag='OLD';tagClass='old';}
+  else{items=Vault.getAll().filter(i=>Vault.scorePassword(i.password)>=4);title='Strong Passwords';tag='STRONG';tagClass='';}
+
+  const sec=document.getElementById('healthSection');
+  if(!items.length){
+    sec.innerHTML=`<p class="health-list-title">${title} <span>0</span></p><div class="vault-empty" style="padding:2rem 1rem"><div class="vault-empty-icon">✅</div><h3>All clear!</h3><p>No ${title.toLowerCase()} found.</p></div>`;
+    return;
+  }
+  sec.innerHTML=`<p class="health-list-title">${title} <span>${items.length}</span></p>`+items.map(p=>`
+    <div class="health-pw-row">
+      <div class="h-favicon">${UI.catEmoji(p.category)}</div>
+      <div class="h-meta">
+        <div class="h-title">${p.title}</div>
+        <div class="h-sub">${p.username||'No username'} · Updated ${UI.timeAgo(p.updated)}</div>
+      </div>
+      ${tagClass?`<span class="h-tag ${tagClass}">${tag}</span>`:'<span class="h-tag" style="background:var(--green-dim);color:var(--green);border:1px solid rgba(57,255,20,.2)">STRONG</span>'}
+      <a href="vault.html" class="btn btn-ghost btn-xs" style="margin-left:.25rem">Fix →</a>
+    </div>`).join('');
+}
+
+loadHealth();
+</script>
+</body>
+</html>

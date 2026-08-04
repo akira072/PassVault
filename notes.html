@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PassVault — Secure Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand"><div class="brand-logo">Pass<span class="vault">Vault</span></div><span class="sb-version">v1.0</span></div>
+    <div class="sb-user"><div class="sb-avatar" id="sbAvatar">P</div><div class="sb-user-info"><div class="sb-name" id="sbName">…</div><div class="sb-email" id="sbEmail"></div></div></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-item" href="dashboard.html"><span class="sb-icon">⬡</span> Dashboard</a>
+      <a class="sb-item" href="vault.html"><span class="sb-icon">🔑</span> Passwords <span class="sb-badge purple" id="sbPwCount">0</span></a>
+      <a class="sb-item" href="health.html"><span class="sb-icon">🛡</span> Security Health</a>
+      <a class="sb-item active" href="notes.html"><span class="sb-icon">📝</span> Secure Notes</a>
+      <div class="sb-section">Tools</div>
+      <a class="sb-item" href="roadmap.html"><span class="sb-icon">🗺</span> Roadmap</a>
+      <a class="sb-item" href="https://akira072.github.io/PassForge" target="_blank"><span class="sb-icon">⚙</span> PassForge ↗</a>
+    </nav>
+    <div class="sb-footer">
+      <button class="sb-footer-link" onclick="Vault.exportJSON();UI.toast('Exported','green')"><span class="sb-icon">📤</span> Export Vault</button>
+      <button class="sb-footer-link" onclick="Auth.logout()"><span class="sb-icon">🚪</span> Log Out</button>
+    </div>
+  </aside>
+  <div class="sb-backdrop" id="sbBackdrop"></div>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <span class="page-title">Secure Notes</span>
+      <div class="search-wrap">
+        <span class="search-ico">🔍</span>
+        <input class="search-input" type="text" id="noteSearch" placeholder="Search notes…" oninput="renderNotes()"/>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openNoteModal()"><span>＋</span> <span>New Note</span></button>
+      </div>
+    </header>
+    <div class="page">
+      <div class="notes-grid" id="notesGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="noteModal">
+  <div class="modal note-modal">
+    <div class="modal-hd">
+      <span class="modal-title" id="noteModalTitle">New Note</span>
+      <button class="modal-x" onclick="UI.closeModal('noteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg"><label>Title *</label><input class="fi" type="text" id="nTitle" placeholder="Note title…"/><span class="fi-err" id="nTitleErr"></span></div>
+      <div class="fg"><label>Content *</label><textarea class="fi fi-ta" id="nContent" placeholder="Write your secure note…" style="min-height:180px"></textarea><span class="fi-err" id="nContentErr"></span></div>
+      <div class="fg"><label>Tags <span style="color:var(--slate);font-size:.65rem">(comma-separated)</span></label><input class="fi" type="text" id="nTags" placeholder="recovery, keys, api"/></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="UI.closeModal('noteModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="viewNoteModal">
+  <div class="modal note-modal">
+    <div class="modal-hd">
+      <span class="modal-title" id="viewNoteTitle">Note</span>
+      <button class="modal-x" onclick="UI.closeModal('viewNoteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-family:'Space Mono',monospace;font-size:.8rem;color:var(--white);line-height:1.8;white-space:pre-wrap;word-break:break-word" id="viewNoteContent"></div>
+      <div style="margin-top:1rem;font-size:.65rem;color:var(--slate)" id="viewNoteMeta"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-ghost" onclick="UI.closeModal('viewNoteModal')">Close</button>
+      <button class="btn btn-primary" id="viewNoteEditBtn">✏ Edit</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="confirmModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-body" style="text-align:center;padding:2rem 1.5rem">
+      <div style="font-size:2.5rem;margin-bottom:.75rem">🗑</div>
+      <div style="font-size:.95rem;font-weight:600;margin-bottom:.5rem" id="confirmTitle">Delete Note?</div>
+      <p style="font-size:.8rem;color:var(--slate)" id="confirmMsg">This cannot be undone.</p>
+      <div style="display:flex;gap:.5rem;justify-content:center;margin-top:1.25rem">
+        <button class="btn btn-ghost" onclick="UI.closeModal('confirmModal')">Cancel</button>
+        <button class="btn btn-danger" id="confirmOkBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="auth.js"></script><script src="vault.js"></script><script src="ui.js"></script>
+<script>
+Auth.requireAuth();
+UI.fillUser();
+UI.initSidebar();
+document.getElementById('sbPwCount').textContent=Vault.getAll().length;
+
+let editNoteId=null;
+
+function renderNotes(){
+  const q=document.getElementById('noteSearch').value.toLowerCase();
+  let notes=Vault.getAllNotes().filter(n=>!q||n.title.toLowerCase().includes(q)||n.content.toLowerCase().includes(q)||(n.tags||'').toLowerCase().includes(q));
+  notes.sort((a,b)=>b.updated-a.updated);
+  const grid=document.getElementById('notesGrid');
+  if(!notes.length){
+    grid.innerHTML=`<div class="vault-empty" style="grid-column:1/-1"><div class="vault-empty-icon">📝</div><h3>${q?'No results':'No notes yet'}</h3><p>${q?'Try a different search term.':'Create your first secure note to store API keys, recovery codes, or any sensitive text.'}</p><button class="btn btn-primary" onclick="openNoteModal()">＋ New Note</button></div>`;
+    return;
+  }
+  grid.innerHTML=notes.map(n=>`
+    <div class="note-card" onclick="viewNote('${n.id}')">
+      <div class="note-card-top">
+        <div class="note-title">${n.title}</div>
+        <div style="display:flex;gap:.25rem;z-index:1" onclick="event.stopPropagation()">
+          <button class="btn-icon btn-xs" onclick="openNoteModal('${n.id}')" title="Edit">✏</button>
+          <button class="btn-icon btn-xs danger" onclick="UI.confirm('Delete note &quot;${n.title}&quot;?','Delete Note',()=>{Vault.removeNote('${n.id}');renderNotes();UI.toast('Note deleted','red')})" title="Delete">🗑</button>
+        </div>
+      </div>
+      <div class="note-preview">${n.content}</div>
+      <div class="note-footer">
+        <span class="note-date">${UI.timeAgo(n.updated)}</span>
+        ${n.tags?`<span style="font-size:.62rem;color:var(--slate)">${n.tags}</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function openNoteModal(id){
+  editNoteId=id||null;
+  document.getElementById('noteModalTitle').textContent=id?'Edit Note':'New Note';
+  if(id){
+    const n=Vault.getAllNotes().find(x=>x.id===id);
+    if(n){document.getElementById('nTitle').value=n.title;document.getElementById('nContent').value=n.content;document.getElementById('nTags').value=n.tags||'';}
+  } else {
+    ['nTitle','nContent','nTags'].forEach(i=>document.getElementById(i).value='');
+  }
+  ['nTitle','nContent'].forEach(i=>{document.getElementById(i).classList.remove('err');document.getElementById(i+'Err').textContent='';});
+  UI.closeModal('viewNoteModal');
+  UI.openModal('noteModal');
+}
+
+function saveNote(){
+  const title=document.getElementById('nTitle').value.trim();
+  const content=document.getElementById('nContent').value.trim();
+  let ok=true;
+  if(!title){document.getElementById('nTitle').classList.add('err');document.getElementById('nTitleErr').textContent='Title required.';ok=false;}
+  if(!content){document.getElementById('nContent').classList.add('err');document.getElementById('nContentErr').textContent='Content required.';ok=false;}
+  if(!ok)return;
+  const data={title,content,tags:document.getElementById('nTags').value.trim()};
+  if(editNoteId){Vault.updateNote(editNoteId,data);UI.toast('Note updated','green');}
+  else{Vault.addNote(data);UI.toast('Note saved','green');}
+  UI.closeModal('noteModal');
+  renderNotes();
+}
+
+function viewNote(id){
+  const n=Vault.getAllNotes().find(x=>x.id===id);
+  if(!n)return;
+  document.getElementById('viewNoteTitle').textContent=n.title;
+  document.getElementById('viewNoteContent').textContent=n.content;
+  document.getElementById('viewNoteMeta').textContent='Created '+UI.timeAgo(n.created)+' · Updated '+UI.timeAgo(n.updated)+(n.tags?' · '+n.tags:'');
+  document.getElementById('viewNoteEditBtn').onclick=()=>openNoteModal(id);
+  UI.openModal('viewNoteModal');
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')UI.closeAllModals();});
+renderNotes();
+</script>
+</body>
+</html>
